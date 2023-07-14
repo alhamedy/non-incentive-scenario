@@ -1,0 +1,82 @@
+import random
+import matplotlib.pyplot as plt
+import pandas as pd
+
+num_followers = 20
+min_reputation = 0
+max_reputation = 6
+optimal_participants = 17
+max_iterations = 100
+
+# Read the dataset file
+dataset_file = "/content/Dataset for incentive-20 nodes.csv"
+df = pd.read_csv(dataset_file)
+
+# Extract columns from the dataset
+follower_ids = df["Node-ID"].tolist()
+cpu_utilization = df["CPU-Utilization"].tolist()
+memory_usage = df["Memory-Usage"].tolist()
+reputation_scores = df["Reputation value"].tolist()
+
+# Initialize the number of participants to 0 and create empty lists to store the results
+num_participants = 0
+num_accepts = []
+behaviors = []
+participation_levels = []  # New list to store the level of participation
+
+# Loop until the optimal number of participants is reached or the maximum number of iterations is reached
+for iteration in range(max_iterations):
+    behaviors = []
+    print(f"Iteration: {iteration + 1}")
+
+    for j in range(num_followers):
+        follower_id = follower_ids[j]
+        reputation = reputation_scores[j]
+
+        if 4 <= reputation <= 6:
+            behaviors.append("accept")
+        else:
+            behaviors.append("reject")
+
+        print(f"Node {follower_id}: CPU utilization = {cpu_utilization[j]}%, Memory usage = {memory_usage[j]}%, "
+              f"Reputation value = {reputation}, Decision = {behaviors[j]}")
+
+    # Count the number of followers who accept the job
+    num_accept = behaviors.count("accept")
+    participation = num_accept / optimal_participants * 100  # Calculate the level of participation
+    participation_levels.append(participation)  # Add the level of participation to the list
+    print(f"Level of participation: {participation:.2f}%")  # Print the level of participation
+    print("----------------------------------------------")
+
+    # Append the results to the corresponding lists
+    num_accepts.append(num_accept)
+
+    # Update the number of participants if the optimal number of participants is reached
+    if num_accept == optimal_participants:
+        num_participants = num_accept
+        print(f"Optimal participants reached: {num_accept}")
+        break
+    elif num_participants < num_accept:
+        num_participants = num_accept
+
+# Print the results
+if num_participants == optimal_participants:
+    print(f"Optimal participants: {num_participants}")
+else:
+    print(f"Highest number of participants: {num_participants}")
+
+# Print CPU utilization, memory usage, and reputation score of participating nodes
+print("CPU Utilization, Memory Usage, and Reputation of Participating Nodes:")
+for j in range(num_followers):
+    if behaviors[j] == "accept":
+        follower_id = follower_ids[j]
+        print(f"Node {follower_id}: CPU = {cpu_utilization[j]}%, Memory = {memory_usage[j]}%, "
+              f"Reputation = {reputation_scores[j]}")
+print(f"Level of participation: {participation:.2f}%")
+
+fig, ax = plt.subplots()
+ax.plot(range(len(num_accepts)), num_accepts, label="Number of participants")
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Number of participants")
+ax.legend()
+plt.show()
